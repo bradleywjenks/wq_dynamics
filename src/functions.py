@@ -9,6 +9,7 @@ The following functions are defined in this file:
 ##### PREAMBLE #####
 
 # import packages
+import os
 import wntr
 import networkx as nx
 import pandas as pd
@@ -17,6 +18,10 @@ from pydantic import BaseModel
 from typing import Any
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import warnings
+warnings.filterwarnings("ignore")
+
+from src.functions import *
 
 
 # improve matplotlib image quality
@@ -203,7 +208,7 @@ def load_network_data(inp_file):
 Plot network function
 """ 
 
-def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, sensor_nodes=None, vals=None, t=None):
+def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, bv_nodes=None, sensor_nodes=None, vals=None, t=None, legend_labels=None):
 
     # unload data
     link_df = wdn.link_df
@@ -216,22 +221,23 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
         uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
         pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
 
-        nx.draw(uG, pos, node_size=0, node_shape='o')
-        nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=120, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
+        nx.draw(uG, pos, node_size=0, node_shape='o', edge_color='grey')
+        nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=100, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
 
         if prv_nodes is not None:
-            nx.draw_networkx_nodes(uG, pos, nodelist=prv_nodes, node_size=100, node_shape='d', node_color='black', edgecolors='white')
+            nx.draw_networkx_nodes(uG, pos, nodelist=prv_nodes, node_size=120, node_shape='^', node_color='black', edgecolors='white')
+
+        if bv_nodes is not None:
+            nx.draw_networkx_nodes(uG, pos, nodelist=bv_nodes, node_size=65, node_shape='x', linewidths=2, node_color='black', edgecolors='white')
         
         if dbv_nodes is not None:
-            nx.draw_networkx_nodes(uG, pos, nodelist=dbv_nodes, node_size=100, node_shape='d', node_color='black', edgecolors='white')
+            nx.draw_networkx_nodes(uG, pos, nodelist=dbv_nodes, node_size=120, node_shape='d', node_color='black', edgecolors='white')
         
         if afv_nodes is not None:
-            nx.draw_networkx_nodes(uG, pos, nodelist=dbv_nodes, node_size=100, node_shape='d', node_color='black', edgecolors='white')
+            nx.draw_networkx_nodes(uG, pos, nodelist=afv_nodes, node_size=200, node_shape='*', node_color='black', edgecolors='white')
 
         if sensor_nodes is not None:
-            node_names = net_info['junction_names'] + net_info['reservoir_names']
-            sensor_names = [node_names[i] for i in sensor_nodes]
-            nx.draw_networkx_nodes(uG, pos, sensor_names, node_size=80, node_shape='o', node_color='red', edgecolors='white')
+            nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=80, node_shape='o', node_color='black', edgecolors='white')
 
 
 
@@ -331,28 +337,254 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
         colorbar.set_label('Flow [L/s]', fontsize=12)       
 
     
-    # reservoir labels
-    reservoir_labels = {node: 'Reservoir' for node in net_info['reservoir_names']}
-    labels_1 = nx.draw_networkx_labels(uG, pos, reservoir_labels, font_size=11, verticalalignment='bottom')
-    for _, label in labels_1.items():
-        label.set_y(label.get_position()[1] + 80)
+    # # reservoir labels
+    # reservoir_labels = {node: '' for node in net_info['reservoir_names']}
+    # labels_1 = nx.draw_networkx_labels(uG, pos, reservoir_labels, font_size=11, verticalalignment='bottom')
+    # for _, label in labels_1.items():
+    #     label.set_y(label.get_position()[1] + 80)
 
-    # pcv labels
-    if prv_nodes is not None:
-        prv_labels = {node: 'PRV' for node in prv_nodes}
-        labels_2 = nx.draw_networkx_labels(uG, pos, prv_labels, font_size=11, verticalalignment='bottom')
-        for _, label in labels_2.items():
-            label.set_y(label.get_position()[1] + 80)
+    # # prv labels
+    # if prv_nodes is not None:
+    #     prv_labels = {node: 'PRV' for node in prv_nodes}
+    #     labels_2 = nx.draw_networkx_labels(uG, pos, prv_labels, font_size=11, verticalalignment='bottom')
+    #     for _, label in labels_2.items():
+    #         label.set_y(label.get_position()[1] + 80)
 
-    # sensor labels
-    if sensor_nodes is not None:
-        sensor_labels = {node: str() for (idx, node) in enumerate(sensor_names)}
-        labels_sen = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=11, verticalalignment='bottom')
-        for _, label in labels_sen.items():
-            label.set_y(label.get_position()[1] + 80)
 
-        legend_labels = {'Sensor node': 'red'}
-        legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=label) for label, color in legend_labels.items()]
+    # custom legend code
+    if legend_labels is not None:
+        # legend_labels = {'Inlet (source)': 'black', 'PRV': 'black', 'DBV': 'black', 'BV': 'black', 'AFV': 'black', 'Sensor node': 'blue'}
+        legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor node' else 's' if label == 'Inlet (source)' else '^' if label == 'PRV' else 'd' if label == 'DBV' else 'x' if label == 'BV' else '*' if label == 'AFV' else None, markeredgewidth=2 if label == 'BV' else None, markeredgecolor='black' if label == 'BV' else None, color='white', markerfacecolor=color, markersize=8 if (label == 'Sensor node' or label == 'BV') else 9 if label == 'Inlet (source)' else 10 if (label == 'PRV' or label == 'DBV') else 14 if label == 'AFV' else None, label=label) for label, color in legend_labels.items()]
         plt.legend(handles=legend_handles, loc='upper right', frameon=False)
 
+
+
+
+
+
+"""
+Set controls function
+""" 
+
+def set_controls(net_name, data_path, scenario, bv_close=None, bv_open=None, prv=None, prv_dir=None, dbv=None, afv=None, sim_days=1):
+
+    # BV data
+    bv_open_setting = 1e-04
+    bv_close_setting = 1e10
+
+    # load dynamic set-points
+    if scenario == 'self-cleaning control':
+        prv_setting = pd.read_csv(os.path.join(data_path, 'prv_scc_settings.csv'))
+    else: 
+        prv_setting = pd.read_csv(os.path.join(data_path, 'prv_exist_settings.csv'))
+
+    prv_setting = np.tile(prv_setting, sim_days) 
+    dbv_setting = pd.read_csv(os.path.join(data_path, 'dbv_exist_settings.csv'))
+    dbv_setting = np.tile(dbv_setting, sim_days)
+    afv_setting = pd.read_csv(os.path.join(data_path, 'afv_scc_settings.csv'))
+    afv_setting = np.tile(afv_setting, sim_days)
+    afv_time = np.arange(38, 42)
+
+    # load network data
+    wdn = load_network_data(os.path.join(data_path, net_name))
+
+    # load network via wntr
+    net_path = os.path.join(data_path, net_name)
+    wn = wntr.network.WaterNetworkModel(net_path)
+
+    if bv_close is not None:   
+        # assign closed BV settings
+        for idx, name in enumerate(bv_close):
+            link_data = wn.get_link(name)
+            link_data = wn.get_link(name).initial_setting = bv_close_setting
+            link_data = wn.get_link(name).initial_status = "Active"
+
+    if bv_open is not None:   
+        # assign open BV settings
+        for idx, name in enumerate(bv_open):
+            link_data = wn.get_link(name)
+            link_data = wn.get_link(name).initial_setting = bv_open_setting
+            link_data = wn.get_link(name).initial_status = "Active"
+    
+    if dbv is not None:
+        # assign initial DBV settings
+        for idx, name in enumerate(dbv):
+            link_data = wn.get_link(name)
+            link_data = wn.get_link(name).initial_setting = dbv_setting[idx, 1] # initial control
+            link_data = wn.get_link(name).initial_status = "Active"
+        
+        # assign time-based DBV controls
+        dbv_controls = []
+        for t in np.arange(wdn.net_info['nt'] * sim_days):
+            for (idx, name) in enumerate(dbv):
+                valve = wn.get_link(name)
+                dbv_controls = name + "_control_setting_t_" + str(t/4)
+                cond = wntr.network.controls.SimTimeCondition(wn, "=", t*900)
+                act = wntr.network.controls.ControlAction(valve, "setting", dbv_setting[idx, t])
+                rule = wntr.network.controls.Rule(cond, [act], name=dbv_controls)
+                wn.add_control(dbv_controls, rule)
+
+    if prv is not None:       
+        # assign initial PRV settings
+        for idx, name in enumerate(prv):
+            link_data = wn.get_link(name)
+            wn.remove_link(name)
+            if prv_dir[idx] == 1:
+                wn.add_valve(name, link_data.start_node_name, link_data.end_node_name, diameter=link_data.diameter, valve_type="PRV", minor_loss=0.0001, initial_setting=prv_setting[idx, 0], initial_status="Active")
+            else:
+                wn.add_valve(name, link_data.end_node_name, link_data.start_node_name, diameter=link_data.diameter, valve_type="PRV", minor_loss=0.0001, initial_setting=prv_setting[idx, 0], initial_status="Active")
+        
+        # assign time-based PRV controls
+        prv_controls = []
+        for t in np.arange(wdn.net_info['nt'] * sim_days):
+            for (idx, name) in enumerate(prv):
+                valve = wn.get_link(name)
+                prv_controls = name + "_prv_setting_t_" + str(t/4)
+                cond = wntr.network.controls.SimTimeCondition(wn, "=", t*900)
+                act = wntr.network.controls.ControlAction(valve, "setting", prv_setting[idx, t])
+                rule = wntr.network.controls.Rule(cond, [act], name=prv_controls)
+                wn.add_control(prv_controls, rule)
+    
+    if afv is not None:
+        # assign AFV demands
+        afv_controls = np.zeros((wdn.net_info['nt'], len(afv)))
+        afv_controls[afv_time, :] = afv_setting
+        sim_time = np.arange(0, wn.options.time.duration, 900)
+
+        afv_df = pd.DataFrame(afv_controls, columns=afv, index=sim_time)
+        wn.assign_demand(afv_df, pattern_prefix="afv_demand")
+
+    return wn
+
+
+
+
+"""
+Plot temporal metric
+""" 
+
+def plot_temporal_metric(wdn, temporal_metric, df_flow, df_qual, sensor_names, sim_days_hyd=1):
+
+    # unload data
+    link_df = wdn.link_df
+    node_df = wdn.node_df
+        
+    if temporal_metric == 'flow reversal':
+        
+        # metric data
+        q = df_flow.to_numpy().T
+        metric = pd.DataFrame(index=df_flow.T.index)
+        metric['rev_count'] = 0
+
+        for j in np.arange(wdn.net_info['np']):
+            a = 0
+            for k in np.arange(1, wdn.net_info['nt']*sim_days_hyd):
+                if np.abs(q[j, k-1]) > 1e-4 and np.abs(q[j, k]) > 1e-4:
+                    if np.sign(q[j, k-1]) * np.sign(q[j, k]) == -1:
+                        a += 1
+            
+            metric['rev_count'][j] = a
+            
+        edge_weight_name = 'rev_count'
+        cbar_title = "Flow reversal count"
+        colorbar_ticks = (np.arange(0, 6, 1), [str(int(x)) for x in np.arange(0, 5, 1)] + [r"$\geq 5$"])
+        clims = (0, 5)
+        cmap = cm.Reds
+
+        # draw network and plot edge weights
+        edge_weights = link_df[['link_ID', 'node_out', 'node_in']]
+        edge_weights.set_index('link_ID', inplace=True)
+        edge_weights = edge_weights.join(metric)
+        uG = nx.from_pandas_edgelist(edge_weights, source='node_out', target='node_in', edge_attr=edge_weight_name)
+        pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
+        
+        edge_values = nx.get_edge_attributes(uG, edge_weight_name)
+        edge_values = list(edge_values.values())
+        norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
+        edge_colors = cmap(norm(edge_values))
+        
+        flow_cv_plot = nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
+        flow_cv_plot = nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=2) 
+        flow_cv_plot = nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+
+        # create a color bar
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array(edge_values)
+        colorbar = plt.colorbar(sm)
+        colorbar.set_label(cbar_title, fontsize=12)
+        colorbar.set_ticks(colorbar_ticks[0])
+        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+        
+        legend_labels = {'Sensor node': 'black'}
+        legend_handles = [plt.Line2D([0], [0], marker='o', markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10, label=label)  for label, color in legend_labels.items()]
+        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
+        
+    elif temporal_metric == 'flow cv':
+        
+        # metric data
+        metric = pd.DataFrame((df_flow.std() / df_flow.mean()).abs(), columns=['flow_cv'])
+        edge_weight_name = 'flow_cv'
+        cbar_title = 'Flow CV'
+        colorbar_ticks = (np.arange(0.4, 1.5, 0.2), [r"$<0.4$"] + [str(round(x,2)) for x in np.arange(0.6, 1.3, 0.2)] + [r"$\geq 1.4$"])
+        clims = (0.4, 1.4)
+        cmap = cm.Blues
+
+        # draw network and plot edge weights
+        edge_weights = link_df[['link_ID', 'node_out', 'node_in']]
+        edge_weights.set_index('link_ID', inplace=True)
+        edge_weights = edge_weights.join(metric)
+        uG = nx.from_pandas_edgelist(edge_weights, source='node_out', target='node_in', edge_attr=edge_weight_name)
+        pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
+        
+        edge_values = nx.get_edge_attributes(uG, edge_weight_name)
+        edge_values = list(edge_values.values())
+        norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
+        edge_colors = cmap(norm(edge_values))
+        
+        flow_rev_plot = nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
+        flow_rev_plot = nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=2) 
+        flow_rev_plot = nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+
+        # create a color bar
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array(edge_values)
+        colorbar = plt.colorbar(sm)
+        colorbar.set_label(cbar_title, fontsize=12)
+        colorbar.set_ticks(colorbar_ticks[0])
+        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+        
+        legend_labels = {'Sensor node': 'black'}
+        legend_handles = [plt.Line2D([0], [0], marker='o', markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10, label=label)  for label, color in legend_labels.items()]
+        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
+        
+    elif temporal_metric == 'source trace':
+        
+        # metric data
+        metric = df_qual.T
+        node_weight_name = 'source_trace'
+        cbar_title = 'Mean source trace [%]'
+        colorbar_ticks = (np.arange(50, 101, 10), [r"$<50$"] + [str(int(x)) for x in np.arange(60, 101, 10)])
+        clims = (50, 100)
+        cmap = cm.get_cmap('RdYlBu')
+
+        # draw network and plot node weights
+        uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
+        pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
+        
+        norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
+        node_colors = cmap(norm(metric[node_weight_name]))
+        nx.draw(uG, pos, nodelist=metric.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey')
+        nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+
+        # create a color bar
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array(metric[node_weight_name])
+        colorbar = plt.colorbar(sm)
+        colorbar.set_label(cbar_title, fontsize=12)
+        colorbar.set_ticks(colorbar_ticks[0])
+        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+        
+        legend_labels = {'Sensor node': 'black'}
+        legend_handles = [plt.Line2D([0], [0], marker='o', markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10, label=label)  for label, color in legend_labels.items()]
+        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
 
