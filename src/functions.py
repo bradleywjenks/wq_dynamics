@@ -208,7 +208,7 @@ def load_network_data(inp_file):
 Plot network function
 """ 
 
-def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, bv_nodes=None, sensor_nodes=None, vals=None, t=None, legend_labels=None):
+def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, bv_nodes=None, sensor_nodes=None, vals_df=None, t=None, legend_labels=None):
 
     # unload data
     link_df = wdn.link_df
@@ -301,6 +301,25 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
         colorbar = plt.colorbar(sm)
         colorbar.set_label('Pressure head [m]', fontsize=12)
 
+    elif plot_type == 'disinfectant':
+
+            uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
+            pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
+
+            cmap = cm.get_cmap('RdYlBu')
+            norm = plt.Normalize(vmin=vals_df.iloc[:, t].min(), vmax=vals_df.iloc[:, t].max())
+            node_colors = cmap(norm(vals_df.iloc[:, t]))
+            nx.draw(uG, pos, nodelist=vals_df.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey')
+            nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+
+            # create a color bar
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array(vals_df.iloc[:, t])
+            colorbar = plt.colorbar(sm)
+            colorbar.set_label('Disinfectant residual [mg/L]', fontsize=12)
+            # colorbar.set_ticks(colorbar_ticks[0])
+            # colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+
 
     elif plot_type == 'flow':
 
@@ -382,7 +401,7 @@ def set_controls(net_name, data_path, scenario, bv_close=None, bv_open=None, prv
     dbv_setting = pd.read_csv(os.path.join(data_path, 'dbv_exist_settings.csv'))
     dbv_setting = np.tile(dbv_setting, sim_days)
     afv_setting = pd.read_csv(os.path.join(data_path, 'afv_scc_settings.csv'))
-    afv_setting = np.tile(afv_setting, sim_days)
+    # afv_setting = np.tile(afv_setting, sim_days)
     afv_time = np.arange(38, 42)
 
     # load network data
@@ -463,7 +482,7 @@ def set_controls(net_name, data_path, scenario, bv_close=None, bv_open=None, prv
 Plot temporal metric
 """ 
 
-def plot_temporal_metric(wdn, temporal_metric, df_flow, df_qual, sensor_names, sim_days_hyd=1):
+def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, sim_days_hyd=1):
 
     # unload data
     link_df = wdn.link_df
@@ -560,7 +579,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_qual, sensor_names, s
     elif temporal_metric == 'source trace':
         
         # metric data
-        metric = df_qual.T
+        metric = df_trace.T
         node_weight_name = 'source_trace'
         cbar_title = 'Mean source trace [%]'
         colorbar_ticks = (np.arange(50, 101, 10), [r"$<50$"] + [str(int(x)) for x in np.arange(60, 101, 10)])
