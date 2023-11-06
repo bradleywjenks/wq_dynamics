@@ -208,7 +208,7 @@ def load_network_data(inp_file):
 Plot network function
 """ 
 
-def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, bv_nodes=None, sensor_nodes=None, vals_df=None, t=None, legend_labels=None):
+def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, bv_nodes=None, sensor_nodes=None, vals_df=None, t=None, legend_labels=None, sensor_labels=False):
 
     # unload data
     link_df = wdn.link_df
@@ -238,6 +238,12 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
 
         if sensor_nodes is not None:
             nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=80, node_shape='o', node_color='black', edgecolors='white')
+
+            if sensor_labels:
+                sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_nodes)}
+                labels_sen = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=12, verticalalignment='bottom')
+                for _, label in labels_sen.items():
+                    label.set_y(label.get_position()[1] + 70)
 
 
 
@@ -380,6 +386,64 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
 
 
 
+"""
+Plot sensor values spatially
+"""
+
+def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=False):
+
+    # unload data
+    link_df = wdn.link_df
+    node_df = wdn.node_df
+    net_info = wdn.net_info
+    h0_df = wdn.h0_df
+
+    # draw network
+    uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
+    pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
+    nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
+
+    # draw sensor nodes
+    nx.draw_networkx_nodes(uG, pos, sensor_nodes, node_size=100, node_shape='o', node_color='black', edgecolors='white')
+
+    # plot sensor vals
+    if vals is not None:
+
+        cmap = cm.get_cmap('RdYlBu').reversed()
+
+        # get data
+        sensor_vals = vals.to_numpy()
+
+        # plot residuals
+        nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=100, node_shape='o', node_color=sensor_vals, cmap=cmap, edgecolors='white')
+
+        # create color bar
+        sm = plt.cm.ScalarMappable(cmap=cmap)
+        sm.set_array(vals)
+        colorbar = plt.colorbar(sm)
+
+        if vals.columns[0] == 'cv':
+            colorbar.set_label('Coefficient of variation', fontsize=12)
+        elif vals.columns[0] == 'sd':
+            colorbar.set_label('Standard deviation [m]', fontsize=12)
+
+    if sensor_labels:
+        sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_nodes)}
+        labels_sen = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=12, verticalalignment='bottom')
+        for _, label in labels_sen.items():
+            label.set_y(label.get_position()[1] + 70)
+
+    # custom legend code
+    if legend_labels is not None:
+        # legend_labels = {'Inlet (source)': 'black', 'PRV': 'black', 'DBV': 'black', 'BV': 'black', 'AFV': 'black', 'Sensor node': 'blue'}
+        legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor node' else 's' if label == 'Inlet (source)' else '^' if label == 'PRV' else 'd' if label == 'DBV' else 'x' if label == 'BV' else '*' if label == 'AFV' else None, markeredgewidth=2 if label == 'BV' else None, markeredgecolor='black' if label == 'BV' else None, color='white', markerfacecolor=color, markersize=8 if (label == 'Sensor node' or label == 'BV') else 9 if label == 'Inlet (source)' else 10 if (label == 'PRV' or label == 'DBV') else 14 if label == 'AFV' else None, label=label) for label, color in legend_labels.items()]
+        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
+
+
+
+
+
+
 
 """
 Set controls function
@@ -498,7 +562,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         for j in np.arange(wdn.net_info['np']):
             a = 0
             for k in np.arange(1, wdn.net_info['nt']*sim_days_hyd):
-                if np.abs(q[j, k-1]) > 1e-4 and np.abs(q[j, k]) > 1e-4:
+                if np.abs(q[j, k-1]) > 1e-3 and np.abs(q[j, k]) > 1e-3:
                     if np.sign(q[j, k-1]) * np.sign(q[j, k]) == -1:
                         a += 1
             
