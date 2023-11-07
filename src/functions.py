@@ -425,7 +425,7 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
         if vals.columns[0] == 'cv':
             colorbar.set_label('Coefficient of variation', fontsize=12)
         elif vals.columns[0] == 'sd':
-            colorbar.set_label('Standard deviation [m]', fontsize=12)
+            colorbar.set_label('Standard deviation [mg/L]', fontsize=12)
 
     if sensor_labels:
         sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_nodes)}
