@@ -401,7 +401,7 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
     # draw network
     uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
     pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
-    nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
+    nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black', edge_color='grey')
 
     # draw sensor nodes
     nx.draw_networkx_nodes(uG, pos, sensor_nodes, node_size=100, node_shape='o', node_color='black', edgecolors='white')
@@ -412,20 +412,24 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
         cmap = cm.get_cmap('RdYlBu').reversed()
 
         # get data
-        sensor_vals = vals.to_numpy()
+        sensor_vals = vals.to_numpy().astype(float)
 
         # plot residuals
         nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=100, node_shape='o', node_color=sensor_vals, cmap=cmap, edgecolors='white')
 
         # create color bar
         sm = plt.cm.ScalarMappable(cmap=cmap)
-        sm.set_array(vals)
+        sm.set_array(sensor_vals)
         colorbar = plt.colorbar(sm)
 
         if vals.columns[0] == 'cv':
             colorbar.set_label('Coefficient of variation', fontsize=12)
         elif vals.columns[0] == 'sd':
             colorbar.set_label('Standard deviation [mg/L]', fontsize=12)
+        elif vals.columns[0] == 'rmse':
+            colorbar.set_label('Root mean squared error [mg/L]', fontsize=12)
+        elif vals.columns[0] == 'mae':
+            colorbar.set_label('Mean absolute error [mg/L]', fontsize=12)
 
     if sensor_labels:
         sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_nodes)}
