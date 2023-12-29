@@ -17,6 +17,7 @@ import numpy as np
 from pydantic import BaseModel
 from typing import Any
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 import warnings
 warnings.filterwarnings("ignore")
@@ -28,7 +29,7 @@ from src.functions import *
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
 import matplotlib_inline
-matplotlib_inline.backend_inline.set_matplotlib_formats('svg')
+# matplotlib_inline.backend_inline.set_matplotlib_formats('svg')
 
 
 # create class for storing data as objects
@@ -215,13 +216,17 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
     node_df = wdn.node_df
     net_info = wdn.net_info
     h0_df = wdn.h0_df
+
     
     # draw network
+    fig, ax = plt.subplots(figsize=(4, 6))
+    ax.margins(0, 0)
+
     if plot_type == 'layout':
         uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
         pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
 
-        nx.draw(uG, pos, node_size=0, node_shape='o', edge_color='grey')
+        nx.draw(uG, pos, node_size=0, node_shape='o', edge_color='grey', ax=ax)
         nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=100, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
 
         if prv_nodes is not None:
@@ -266,7 +271,7 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
 
         # plot hydraulic heads
         cmap = cm.get_cmap('RdYlBu')
-        nx.draw(uG, pos, nodelist=net_info['junction_names'], node_size=20, node_shape='o', node_color=junction_vals, cmap=cmap, vmin=min_val, vmax=max_val)
+        nx.draw(uG, pos, nodelist=net_info['junction_names'], node_size=20, node_shape='o', node_color=junction_vals, cmap=cmap, vmin=min_val, vmax=max_val, ax=ax)
         nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=100, node_shape='s', node_color=reservoir_vals, cmap=cmap, vmin=min_val, vmax=max_val) 
         if prv_nodes is not None:
             nx.draw_networkx_nodes(uG, pos, nodelist=prv_nodes, node_size=100, node_shape='d', node_color='black') # draw pcv nodes (downstream node)
@@ -296,7 +301,7 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
 
         # plot pressure heads
         cmap = cm.get_cmap('RdYlBu')
-        nx.draw(uG, pos, nodelist=net_info['junction_names'], node_size=20, node_shape='o', node_color=junction_vals, cmap=cmap, vmin=min_val, vmax=max_val)
+        nx.draw(uG, pos, nodelist=net_info['junction_names'], node_size=20, node_shape='o', node_color=junction_vals, cmap=cmap, vmin=min_val, vmax=max_val, ax=ax)
         nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=100, node_shape='s', node_color=reservoir_vals, cmap=cmap, vmin=min_val, vmax=max_val) 
         if prv_nodes is not None:
             nx.draw_networkx_nodes(uG, pos, nodelist=prv_nodes, node_size=100, node_shape='d', node_color='black') # draw pcv nodes (downstream node)
@@ -315,7 +320,7 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
             cmap = cm.get_cmap('RdYlBu')
             norm = plt.Normalize(vmin=vals_df.iloc[:, t].min(), vmax=vals_df.iloc[:, t].max())
             node_colors = cmap(norm(vals_df.iloc[:, t]))
-            nx.draw(uG, pos, nodelist=vals_df.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey')
+            nx.draw(uG, pos, nodelist=vals_df.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey', ax=ax)
             nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
 
             # create a color bar
@@ -349,7 +354,7 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
         edge_colors = cmap(norm(edge_values))
 
 
-        nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
+        nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black', ax=ax)
         nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=100, node_shape='s', node_color='black') 
         nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=2) 
         if prv_nodes is not None:
@@ -399,9 +404,12 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
     h0_df = wdn.h0_df
 
     # draw network
+    fig, ax = plt.subplots(figsize=(4, 6))
+    ax.margins(0, 0)
+
     uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
     pos = {row['node_ID']: (row['xcoord'], row['ycoord']) for _, row in node_df.iterrows()}
-    nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black', edge_color='grey')
+    nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black', edge_color='grey', ax=ax)
 
     # draw sensor nodes
     nx.draw_networkx_nodes(uG, pos, sensor_nodes, node_size=100, node_shape='o', node_color='black', edgecolors='white')
@@ -550,11 +558,15 @@ def set_controls(net_name, data_path, scenario, bv_close=None, bv_open=None, prv
 Plot temporal metric
 """ 
 
-def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, sim_days_hyd=1):
+def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, sim_days_hyd=1, sensor_labels=True):
 
     # unload data
     link_df = wdn.link_df
     node_df = wdn.node_df
+    net_info = wdn.net_info
+
+    fig, ax = plt.subplots(figsize=(3.75, 7.25))
+    ax.margins(0, 0)
         
     if temporal_metric == 'flow reversal':
         
@@ -576,7 +588,13 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         cbar_title = "Flow reversal count"
         colorbar_ticks = (np.arange(0, 6, 1), [str(int(x)) for x in np.arange(0, 5, 1)] + [r"$\geq 5$"])
         clims = (0, 5)
-        cmap = cm.Reds
+        
+        # make custom colorbar
+        min_val, max_val = 0.1,1.0
+        n = 10
+        orig_cmap = cm.Reds
+        colors = orig_cmap(np.linspace(min_val, max_val, n))
+        cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 
         # draw network and plot edge weights
         edge_weights = link_df[['link_ID', 'node_out', 'node_in']]
@@ -590,21 +608,17 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
         edge_colors = cmap(norm(edge_values))
         
-        flow_cv_plot = nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
-        flow_cv_plot = nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=2) 
-        flow_cv_plot = nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+        nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black', alpha=0, ax=ax)
+        nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=1.5) 
 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm)
+        colorbar = plt.colorbar(sm, orientation='horizontal', pad=0, shrink=0.8)
         colorbar.set_label(cbar_title, fontsize=12)
         colorbar.set_ticks(colorbar_ticks[0])
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
         
-        legend_labels = {'Sensor node': 'black'}
-        legend_handles = [plt.Line2D([0], [0], marker='o', markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10, label=label)  for label, color in legend_labels.items()]
-        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
         
     elif temporal_metric == 'flow cv':
         
@@ -614,7 +628,13 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         cbar_title = 'Flow CV'
         colorbar_ticks = (np.arange(0.4, 1.5, 0.2), [r"$<0.4$"] + [str(round(x,2)) for x in np.arange(0.6, 1.3, 0.2)] + [r"$\geq 1.4$"])
         clims = (0.4, 1.4)
-        cmap = cm.Blues
+
+        # make custom colorbar
+        min_val, max_val = 0.1,1.0
+        n = 10
+        orig_cmap = cm.Blues
+        colors = orig_cmap(np.linspace(min_val, max_val, n))
+        cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 
         # draw network and plot edge weights
         edge_weights = link_df[['link_ID', 'node_out', 'node_in']]
@@ -628,21 +648,17 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
         edge_colors = cmap(norm(edge_values))
         
-        flow_rev_plot = nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black')
-        flow_rev_plot = nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=2) 
-        flow_rev_plot = nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+        nx.draw(uG, pos, node_size=0, node_shape='o', node_color='black', alpha=0, ax=ax)
+        nx.draw_networkx_edges(uG, pos, edge_color=edge_colors, width=1.5) 
 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm)
+        colorbar = plt.colorbar(sm, orientation='horizontal', pad=0, shrink=0.8)
         colorbar.set_label(cbar_title, fontsize=12)
         colorbar.set_ticks(colorbar_ticks[0])
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
-        
-        legend_labels = {'Sensor node': 'black'}
-        legend_handles = [plt.Line2D([0], [0], marker='o', markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10, label=label)  for label, color in legend_labels.items()]
-        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
+    
         
     elif temporal_metric == 'source trace':
         
@@ -660,18 +676,30 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         
         norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
         node_colors = cmap(norm(metric[node_weight_name]))
-        nx.draw(uG, pos, nodelist=metric.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey')
-        nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+        nx.draw(uG, pos, nodelist=metric.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey', ax=ax)
 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(metric[node_weight_name])
-        colorbar = plt.colorbar(sm)
+        colorbar = plt.colorbar(sm, orientation='horizontal', pad=0, shrink=0.8)
         colorbar.set_label(cbar_title, fontsize=12)
         colorbar.set_ticks(colorbar_ticks[0])
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
-        
-        legend_labels = {'Sensor node': 'black'}
-        legend_handles = [plt.Line2D([0], [0], marker='o', markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10, label=label)  for label, color in legend_labels.items()]
-        plt.legend(handles=legend_handles, loc='upper right', frameon=False)
 
+
+    nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=120, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
+    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=100, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+    if sensor_labels:
+        sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_names)}
+        # labels_sen_white = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=14, font_color='white', verticalalignment='bottom')
+        labels_sen = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=12, verticalalignment='bottom')
+        for _, label in labels_sen.items():
+            label.set_y(label.get_position()[1] + 70)
+        # for _, label in labels_sen_white.items():
+        #     label.set_y(label.get_position()[1] + 70)   
+
+    legend_labels = {'Inlet': 'black', 'Sensor': 'black'}
+    legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor' else 's' if label == 'Inlet' else None, markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10 if label == 'Sensor' else 11 if label == 'Inlet' else None, label=label) for label, color in legend_labels.items()]
+    leg = plt.legend(handles=legend_handles, loc='upper right', frameon=True, borderpad=0.75)
+    leg.get_frame().set_edgecolor('black')
+    leg.get_frame().set_linewidth(0.5)
