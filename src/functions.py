@@ -566,7 +566,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
     net_info = wdn.net_info
 
     fig, ax = plt.subplots(figsize=(3.75, 7.25))
-    ax.margins(0, 0)
+    ax.margins(0.025, 0.025)
         
     if temporal_metric == 'flow reversal':
         
@@ -614,7 +614,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=0, shrink=0.8)
+        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
         colorbar.set_label(cbar_title, fontsize=12)
         colorbar.set_ticks(colorbar_ticks[0])
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -654,7 +654,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=0, shrink=0.8)
+        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
         colorbar.set_label(cbar_title, fontsize=12)
         colorbar.set_ticks(colorbar_ticks[0])
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -676,19 +676,19 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         
         norm = plt.Normalize(vmin=clims[0], vmax=clims[1])
         node_colors = cmap(norm(metric[node_weight_name]))
-        nx.draw(uG, pos, nodelist=metric.index, node_size=30, node_shape='o', alpha=0.85, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey', ax=ax)
+        nx.draw(uG, pos, nodelist=metric.index, node_size=30, node_shape='o', alpha=0.75, linewidths=0, node_color=node_colors, cmap=cmap, edge_color='grey', ax=ax)
 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(metric[node_weight_name])
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=0, shrink=0.8)
+        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
         colorbar.set_label(cbar_title, fontsize=12)
         colorbar.set_ticks(colorbar_ticks[0])
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
 
 
     nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=120, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
-    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=100, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=90, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
     if sensor_labels:
         sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_names)}
         # labels_sen_white = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=14, font_color='white', verticalalignment='bottom')
