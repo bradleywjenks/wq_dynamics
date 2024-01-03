@@ -1,0 +1,10 @@
+.ipynb_checkpoints/
+.vscode/
+
+# ignore old data files
+!data/Old & obsolete/
+
+# ignore uploading below files
+temp.bin
+temp.inp
+temp.rpt
