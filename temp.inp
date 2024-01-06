@@ -1,6 +1,6 @@
 ; Filename: /home/bradw/workspace/wq_dynamics/data/bwfl_2022_05_hw.inp
 ; WNTR: 1.0.0
-; Created: 2024-01-06 10:06:31
+; Created: 2024-01-06 10:22:38
 [TITLE]
 
 [JUNCTIONS]
@@ -5154,7 +5154,7 @@
  link_2386            node_1074            node_1075                        144 TCV           0.0001          0.0001   ;
  link_2387            node_1076            node_1077                         97 TCV           0.0001          0.0001   ;
  link_2388            node_1078            node_1079                         97 TCV           0.0001          0.0001   ;
- link_2389            node_1080            node_1081                  76.599998 TCV           0.0001      1000000025   ;
+ link_2389            node_1080            node_1081                  76.599998 TCV       1000000025      1000000025   ;
  link_2390            node_1082            node_1083                 101.599998 TCV           0.0001          0.0001   ;
  link_2391            node_1084            node_1085                 101.599998 TCV           0.0001          0.0001   ;
  link_2392            node_1086            node_1087                  50.799999 TCV           0.0001          0.0001   ;
@@ -5196,7 +5196,7 @@
  link_2428            node_1159            node_1160                         80 TCV           0.0001          0.0001   ;
  link_2429            node_1161            node_1162                         80 TCV           0.0001          0.0001   ;
  link_2430            node_1163            node_1164                  66.599998 TCV           0.0001          0.0001   ;
- link_2431            node_1166            node_1167                        200 TCV      10000000000      1000000025   ;
+ link_2431            node_1166            node_1167                        200 TCV       1000000025      1000000025   ;
  link_2432            node_1168            node_1169                 127.199997 TCV           0.0001          0.0001   ;
  link_2433            node_1170            node_1171                        150 TCV           0.0001          0.0001   ;
  link_2434            node_1172            node_1173                         80 TCV           0.0001          0.0001   ;
@@ -5273,7 +5273,7 @@
  link_2505            node_1321            node_1322                 101.599998 TCV           0.0001          0.0001   ;
  link_2506            node_1323            node_1324                 152.399994 TCV           0.0001          0.0001   ;
  link_2507            node_1325            node_1326                  76.599998 TCV           0.0001          0.0001   ;
- link_2508            node_1327            node_1328                 101.599998 TCV           0.0001      1000000025   ;
+ link_2508            node_1327            node_1328                 101.599998 TCV       1000000025      1000000025   ;
  link_2509            node_1329            node_1330                 101.599998 TCV           0.0001          0.0001   ;
  link_2510            node_1331            node_1332                  76.199997 TCV           0.0001          0.0001   ;
  link_2511            node_1333            node_1334                  76.199997 TCV           0.0001          0.0001   ;
@@ -5320,7 +5320,7 @@
  link_2552            node_1416            node_1417                  72.199997 TCV           0.0001          0.0001   ;
  link_2553            node_1418            node_1419                 101.599998 TCV           0.0001          0.0001   ;
  link_2554            node_1420            node_1421                 101.599998 TCV           0.0001          0.0001   ;
- link_2555            node_1422            node_1423                         80 TCV           0.0001      1000000025   ;
+ link_2555            node_1422            node_1423                         80 TCV       1000000025      1000000025   ;
  link_2556            node_1424            node_1425                         80 TCV           0.0001          0.0001   ;
  link_2557            node_1426            node_1427                  76.599998 TCV           0.0001          0.0001   ;
  link_2558            node_1428            node_1429                        100 TCV           0.0001          0.0001   ;
@@ -5512,8 +5512,8 @@
  link_2744            node_1803            node_1804                         80 TCV           0.0001          0.0001   ;
  link_2745            node_1805            node_1806                        100 TCV           0.0001          0.0001   ;
  link_2746            node_1807            node_1808                        100 TCV           0.0001          0.0001   ;
- link_2747            node_1809            node_1810                         80 TCV      10000000000          0.0001   ;
- link_2748            node_1811            node_1812                         80 TCV      10000000000          0.0001   ;
+ link_2747            node_1809            node_1810                         80 TCV           0.0001          0.0001   ;
+ link_2748            node_1811            node_1812                         80 TCV           0.0001          0.0001   ;
  link_2749            node_1813            node_1814                        100 TCV           0.0001          0.0001   ;
  link_2750            node_1815            node_1816                        100 TCV           0.0001          0.0001   ;
  link_2751            node_1817            node_1818                         80 TCV           0.0001          0.0001   ;
@@ -8245,7 +8245,7 @@ DEMAND CHARGE          0.0000
 ;Tank ID             Model Fraction
 
 [TIMES]
-DURATION             167:45:00
+DURATION             24:00:00
 HYDRAULIC TIMESTEP   00:15:00
 QUALITY TIMESTEP     00:05:00
 PATTERN TIMESTEP     00:15:00
@@ -8253,7 +8253,7 @@ PATTERN START        00:00:00
 REPORT TIMESTEP      00:15:00
 REPORT START         00:00:00
 START CLOCKTIME      00:00:00 AM
-RULE TIMESTEP        00:15:00
+RULE TIMESTEP        00:06:00
 STATISTIC            NONE      
 
 [REPORT]
@@ -8273,7 +8273,7 @@ MAXCHECK             10
 UNBALANCED           CONTINUE 10
 DEMAND MULTIPLIER    1
 EMITTER EXPONENT     0.5
-QUALITY              TRACE node_2747
+QUALITY              AGE                 
 DIFFUSIVITY          1
 TOLERANCE            0.01
 
