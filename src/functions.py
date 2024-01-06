@@ -565,6 +565,9 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
     node_df = wdn.node_df
     net_info = wdn.net_info
 
+    # pipe data
+    csa = (np.pi / 4) * link_df["diameter"] ** 2
+
     fig, ax = plt.subplots(figsize=(3.75, 7.25))
     ax.margins(0.025, 0.025)
         
@@ -578,7 +581,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         for j in np.arange(wdn.net_info['np']):
             a = 0
             for k in np.arange(1, wdn.net_info['nt']*sim_days_hyd):
-                if np.abs(q[j, k-1]) > 1e-3 and np.abs(q[j, k]) > 1e-3:
+                if np.abs(q[j, k-1] / (csa[j]*1000)) > 5e-3 and np.abs(q[j, k] / (csa[j]*1000)) > 5e-3:
                     if np.sign(q[j, k-1]) * np.sign(q[j, k]) == -1:
                         a += 1
             
