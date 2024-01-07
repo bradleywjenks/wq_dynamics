@@ -589,8 +589,8 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
             
         edge_weight_name = 'rev_count'
         cbar_title = "Flow reversal count"
-        colorbar_ticks = (np.arange(0, 6, 1), [str(int(x)) for x in np.arange(0, 5, 1)] + [r"$\geq 5$"])
-        clims = (0, 5)
+        colorbar_ticks = (np.arange(0, 5, 1), [str(int(x)) for x in np.arange(0, 4, 1)] + [r"$\geq 4$"])
+        clims = (0, 4)
         
         # make custom colorbar
         min_val, max_val = 0.1,1.0
@@ -623,17 +623,23 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
         
         
-    elif temporal_metric == 'flow cv':
+    elif temporal_metric == 'vel cv':
         
         # metric data
-        metric = pd.DataFrame((df_flow.std() / df_flow.mean()).abs(), columns=['flow_cv'])
-        edge_weight_name = 'flow_cv'
-        cbar_title = 'Flow CV'
-        colorbar_ticks = (np.arange(0.4, 1.5, 0.2), [r"$<0.4$"] + [str(round(x,2)) for x in np.arange(0.6, 1.3, 0.2)] + [r"$\geq 1.4$"])
-        clims = (0.4, 1.4)
+        df_vel = df_flow.mul(1 / (csa.to_numpy() * 1000), axis=1)
+        metric = pd.DataFrame((df_vel.std() / df_vel.mean()).abs(), columns=['vel_cv'])
+        edge_weight_name = 'vel_cv'
+        cbar_title = 'Flow velocity CV'
+        colorbar_ticks = (np.arange(0.25, 1.3, 0.25), [r"$< 0.25$"] + [str(round(x,2)) for x in np.arange(0.5, 1.1, 0.25)] + [r"$\geq 1.25$"])
+        clims = (0.25, 1.25)
+
+        # # normalize metric
+        # metric_min = np.min(metric)
+        # metric_max = np.max(metric)
+        # normalized_metric = (metric - metric_min) / (max_val - min_val)
 
         # make custom colorbar
-        min_val, max_val = 0.1,1.0
+        min_val, max_val = 0,1.0
         n = 10
         orig_cmap = cm.Blues
         colors = orig_cmap(np.linspace(min_val, max_val, n))
