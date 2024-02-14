@@ -712,3 +712,57 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
     leg = plt.legend(handles=legend_handles, loc='upper right', frameon=True, borderpad=0.75)
     leg.get_frame().set_edgecolor('black')
     leg.get_frame().set_linewidth(0.5)
+
+
+
+
+
+    """
+Get wall coefficient from previous calibration
+""" 
+
+def get_wall_coeff(wdn):
+
+    roughness = wdn.link_df["C"].to_numpy()
+    roughness_round = [round(value / 5) * 5 for value in roughness]
+    roughness_round = sorted([1000 if (value == 0 or value == 1000000025) else value for value in roughness_round])
+    group = {}
+    group_num = 1
+    group_vector = []
+
+    # assign group identifiers based on unique values
+    for value in roughness_round:
+        if value not in group:
+                group[value] = group_num
+                group_num += 1
+        group_vector.append(group[value])
+
+    # consolidate groups into four 
+    consol_group = {}
+    for row, group in group.items():
+        if group == 1 or group == 2 or group == 3:
+            consol_group[row] = 1
+        elif group == 4 or group == 5 or group == 6:
+            consol_group[row] = 2
+        elif group == 7 or group == 8 or group == 9:
+            consol_group[row] = 3
+        else:
+            consol_group[row] = 4
+
+    # assign wall decay coefficients from previous calibration
+    wall_coeff = np.zeros(wdn.net_info["np"])
+    wall_coeff_vals = [0, -1, 0, -0.06] # INSERT CALIBRATED VALUES
+    wall_coeff_vals = [x / (3600*24) for x in wall_coeff_vals]
+
+    for j in np.arange(wdn.net_info["np"]):
+        val = roughness_round[j]
+        if consol_group[val] == 1:
+            wall_coeff[j] = wall_coeff_vals[0]
+        elif consol_group[val] == 2:
+            wall_coeff[j] = wall_coeff_vals[1]
+        elif consol_group[val] == 3:
+            wall_coeff[j] = wall_coeff_vals[2]
+        elif consol_group[val] == 4:
+            wall_coeff[j] = wall_coeff_vals[3]
+
+    return wall_coeff
