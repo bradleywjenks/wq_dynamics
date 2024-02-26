@@ -209,7 +209,7 @@ def load_network_data(inp_file):
 Plot network function
 """ 
 
-def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, bv_nodes=None, sensor_nodes=None, vals_df=None, t=None, legend_labels=None, sensor_labels=False):
+def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_nodes=None, iv_nodes=None, sensor_nodes=None, vals_df=None, t=None, legend_labels=None, sensor_labels=False):
 
     # unload data
     link_df = wdn.link_df
@@ -232,8 +232,8 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
         if prv_nodes is not None:
             nx.draw_networkx_nodes(uG, pos, nodelist=prv_nodes, node_size=120, node_shape='^', node_color='black', edgecolors='white')
 
-        if bv_nodes is not None:
-            nx.draw_networkx_nodes(uG, pos, nodelist=bv_nodes, node_size=65, node_shape='x', linewidths=2, node_color='black', edgecolors='white')
+        if iv_nodes is not None:
+            nx.draw_networkx_nodes(uG, pos, nodelist=iv_nodes, node_size=65, node_shape='x', linewidths=2, node_color='black', edgecolors='white')
         
         if dbv_nodes is not None:
             nx.draw_networkx_nodes(uG, pos, nodelist=dbv_nodes, node_size=120, node_shape='d', node_color='black', edgecolors='white')
@@ -384,7 +384,7 @@ def plot_network(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None, dbv_no
     # custom legend code
     if legend_labels is not None:
         # legend_labels = {'Inlet (source)': 'black', 'PRV': 'black', 'DBV': 'black', 'BV': 'black', 'AFV': 'black', 'Sensor node': 'blue'}
-        legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor node' else 's' if label == 'Inlet (source)' else '^' if label == 'PRV' else 'd' if label == 'DBV' else 'x' if label == 'BV' else '*' if label == 'AFV' else None, markeredgewidth=2 if label == 'BV' else None, markeredgecolor='black' if label == 'BV' else None, color='white', markerfacecolor=color, markersize=8 if (label == 'Sensor node' or label == 'BV') else 9 if label == 'Inlet (source)' else 10 if (label == 'PRV' or label == 'DBV') else 14 if label == 'AFV' else None, label=label) for label, color in legend_labels.items()]
+        legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor node' else 's' if label == 'Inlet (source)' else '^' if label == 'PRV' else 'd' if label == 'DBV' else 'x' if label == 'IV' else '*' if label == 'AFV' else None, markeredgewidth=2 if label == 'IV' else None, markeredgecolor='black' if label == 'IV' else None, color='white', markerfacecolor=color, markersize=8 if (label == 'Sensor node' or label == 'IV') else 9 if label == 'Inlet (source)' else 10 if (label == 'PRV' or label == 'DBV') else 14 if label == 'AFV' else None, label=label) for label, color in legend_labels.items()]
         plt.legend(handles=legend_handles, loc='upper right', frameon=False)
 
 
@@ -428,7 +428,7 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
         # create color bar
         sm = plt.cm.ScalarMappable(cmap=cmap)
         sm.set_array(sensor_vals)
-        colorbar = plt.colorbar(sm)
+        colorbar = plt.colorbar(sm, shrink=0.8)
 
         if vals.columns[0] == 'cv':
             colorbar.set_label('Coefficient of variation', fontsize=12)
@@ -436,8 +436,8 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
             colorbar.set_label('Standard deviation [mg/L]', fontsize=12)
         elif vals.columns[0] == 'rmse':
             colorbar.set_label('Root mean squared error [mg/L]', fontsize=12)
-        elif vals.columns[0] == 'mae':
-            colorbar.set_label('Mean absolute error [mg/L]', fontsize=12)
+        elif vals.columns[0] == 'mad_data':
+            colorbar.set_label('Mean absolute deviation [mg/L]', fontsize=12)
 
     if sensor_labels:
         sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_nodes)}
@@ -448,7 +448,7 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
     # custom legend code
     if legend_labels is not None:
         # legend_labels = {'Inlet (source)': 'black', 'PRV': 'black', 'DBV': 'black', 'BV': 'black', 'AFV': 'black', 'Sensor node': 'blue'}
-        legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor node' else 's' if label == 'Inlet (source)' else '^' if label == 'PRV' else 'd' if label == 'DBV' else 'x' if label == 'BV' else '*' if label == 'AFV' else None, markeredgewidth=2 if label == 'BV' else None, markeredgecolor='black' if label == 'BV' else None, color='white', markerfacecolor=color, markersize=8 if (label == 'Sensor node' or label == 'BV') else 9 if label == 'Inlet (source)' else 10 if (label == 'PRV' or label == 'DBV') else 14 if label == 'AFV' else None, label=label) for label, color in legend_labels.items()]
+        legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor node' else 's' if label == 'Inlet (source)' else '^' if label == 'PRV' else 'd' if label == 'DBV' else 'x' if label == 'IV' else '*' if label == 'AFV' else None, markeredgewidth=2 if label == 'IV' else None, markeredgecolor='black' if label == 'IV' else None, color='white', markerfacecolor=color, markersize=8 if (label == 'Sensor node' or label == 'IV') else 9 if label == 'Inlet (source)' else 10 if (label == 'PRV' or label == 'DBV') else 14 if label == 'AFV' else None, label=label) for label, color in legend_labels.items()]
         plt.legend(handles=legend_handles, loc='upper right', frameon=False)
 
 
@@ -461,7 +461,7 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
 Set controls function
 """ 
 
-def set_controls(net_name, data_path, scenario, bv_close=None, bv_open=None, prv=None, prv_dir=None, dbv=None, afv=None, sim_days=1):
+def set_controls(net_name, data_path, scenario, iv_close=None, iv_open=None, prv=None, prv_dir=None, dbv=None, afv=None, sim_days=1):
 
     # BV data
     bv_open_setting = 1e-04
@@ -487,16 +487,16 @@ def set_controls(net_name, data_path, scenario, bv_close=None, bv_open=None, prv
     net_path = os.path.join(data_path, net_name)
     wn = wntr.network.WaterNetworkModel(net_path)
 
-    if bv_close is not None:   
-        # assign closed BV settings
-        for idx, name in enumerate(bv_close):
+    if iv_close is not None:   
+        # assign closed IV settings
+        for idx, name in enumerate(iv_close):
             link_data = wn.get_link(name)
             link_data = wn.get_link(name).initial_setting = bv_close_setting
             link_data = wn.get_link(name).initial_status = "Active"
 
-    if bv_open is not None:   
+    if iv_open is not None:   
         # assign open BV settings
-        for idx, name in enumerate(bv_open):
+        for idx, name in enumerate(iv_open):
             link_data = wn.get_link(name)
             link_data = wn.get_link(name).initial_setting = bv_open_setting
             link_data = wn.get_link(name).initial_status = "Active"
@@ -581,7 +581,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         for j in np.arange(wdn.net_info['np']):
             a = 0
             for k in np.arange(1, wdn.net_info['nt']*sim_days_hyd):
-                if np.abs(q[j, k-1] / (csa[j]*1000)) > 5e-3 and np.abs(q[j, k] / (csa[j]*1000)) > 5e-3:
+                if np.abs(q[j, k-1] / (csa[j]*1000)) > 1e-6 and np.abs(q[j, k] / (csa[j]*1000)) > 1e-6:
                     if np.sign(q[j, k-1]) * np.sign(q[j, k]) == -1:
                         a += 1
             
@@ -589,8 +589,8 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
             
         edge_weight_name = 'rev_count'
         cbar_title = "Flow reversal count"
-        colorbar_ticks = (np.arange(0, 5, 1), [str(int(x)) for x in np.arange(0, 4, 1)] + [r"$\geq 4$"])
-        clims = (0, 4)
+        colorbar_ticks = (np.arange(0, 7, 2), [str(int(x)) for x in np.arange(0, 5, 2)] + [r"$\geq 6$"])
+        clims = (0, 6)
         
         # make custom colorbar
         min_val, max_val = 0.1,1.0
