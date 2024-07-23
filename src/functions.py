@@ -777,7 +777,7 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
 
 
     nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=120, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
-    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=90, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=75, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
     if sensor_labels:
         sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_names)}
         # labels_sen_white = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=14, font_color='white', verticalalignment='bottom')
