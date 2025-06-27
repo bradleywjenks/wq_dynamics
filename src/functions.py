@@ -32,6 +32,18 @@ import matplotlib_inline
 # matplotlib_inline.backend_inline.set_matplotlib_formats('svg')
 
 
+wong_colors = [
+    (89/255, 89/255, 89/255),       # 0: Black/Grey
+    (230/255, 159/255, 0/255),      # 1: Orange
+    (86/255, 180/255, 233/255),     # 2: Sky Blue
+    (0/255, 158/255, 115/255),      # 3: Bluish Green
+    (240/255, 228/255, 66/255),     # 4: Yellow
+    (0/255, 114/255, 178/255),      # 5: Blue
+    (213/255, 94/255, 0/255),       # 6: Vermillion
+    (204/255, 121/255, 167/255)     # 7: Reddish Purple
+]
+
+
 # create class for storing data as objects
 class WDN(BaseModel):
     A12: Any
@@ -284,7 +296,7 @@ def plot_network_states(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None,
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(vals_df.iloc[:, t])
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.025, shrink=0.8)
         colorbar.set_label('Hydraulic head [m]', fontsize=12)
         # colorbar.set_ticks(colorbar_ticks[0])
         # colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -302,7 +314,7 @@ def plot_network_states(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None,
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(vals_df.iloc[:, t])
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.025, shrink=0.8)
         colorbar.set_label('Pressure head [m]', fontsize=12)
         # colorbar.set_ticks(colorbar_ticks[0])
         # colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -321,7 +333,7 @@ def plot_network_states(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None,
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(vals_df.iloc[:, t])
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.025, shrink=0.8)
         colorbar.set_label('Disinfectant residual [mg/L]', fontsize=12)
         # colorbar.set_ticks(colorbar_ticks[0])
         # colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -369,7 +381,7 @@ def plot_network_states(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None,
         cbar_title = 'Flow rate [L/s]'
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8, extend='max', extendfrac=0.075)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.025, shrink=0.8, extend='max', extendfrac=0.075)
         colorbar.set_label(cbar_title, fontsize=12)
         # colorbar.set_ticks(colorbar_ticks[0])
         # colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -411,7 +423,7 @@ def plot_network_states(wdn, plot_type='layout', prv_nodes=None, afv_nodes=None,
         cbar_title = 'Flow velocity [m/s]'
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8, extend='max', extendfrac=0.075)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.025, shrink=0.8, extend='max', extendfrac=0.075)
         colorbar.set_label(cbar_title, fontsize=12)
         # colorbar.set_ticks(colorbar_ticks[0])
         # colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
@@ -506,7 +518,7 @@ def plot_sensor_data(wdn, sensor_nodes, vals, legend_labels=None, sensor_labels=
         nx.draw_networkx_nodes(uG, pos, nodelist=sensor_nodes, node_size=100, node_shape='o', node_color=sensor_vals, cmap=cmap, edgecolors='white')
 
         # create color bar
-        sm = plt.cm.ScalarMappable(cmap=cmap)
+        sm = plt.cm.ScalarMappable(cmap=cmap, ax=ax)
         sm.set_array(sensor_vals)
         colorbar = plt.colorbar(sm, shrink=0.8)
 
@@ -640,6 +652,8 @@ Plot temporal metric
 
 def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, sim_days_hyd=1, sensor_labels=True):
 
+    sensor_names_ = ["BW1", "BW2", "BW3", "BW4", "BW5", "BW6", "BW9", "BW12"]
+
     # unload data
     link_df = wdn.link_df
     node_df = wdn.node_df
@@ -648,8 +662,8 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
     # pipe data
     csa = (np.pi / 4) * link_df["diameter"] ** 2
 
-    fig, ax = plt.subplots(figsize=(3.75, 7.25))
-    ax.margins(0.025, 0.025)
+    fig, ax = plt.subplots(figsize=(4.75, 7.25))
+    ax.margins(0.0, 0.0)
         
     if temporal_metric == 'flow reversal':
         
@@ -675,7 +689,9 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # make custom colorbar
         min_val, max_val = 0.1,1.0
         n = 10
-        orig_cmap = cm.Reds
+        orig_cmap = mcolors.LinearSegmentedColormap.from_list(
+            "wong_purple_map", ['white', wong_colors[6]]
+        )
         colors = orig_cmap(np.linspace(min_val, max_val, n))
         cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 
@@ -697,10 +713,10 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
-        colorbar.set_label(cbar_title, fontsize=12)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.015, shrink=0.7)
+        colorbar.set_label(cbar_title, fontsize=16)
         colorbar.set_ticks(colorbar_ticks[0])
-        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=14)
         
         
     elif temporal_metric == 'vel cv':
@@ -719,9 +735,11 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # normalized_metric = (metric - metric_min) / (max_val - min_val)
 
         # make custom colorbar
-        min_val, max_val = 0,1.0
+        min_val, max_val = 0.05,1.0
         n = 10
-        orig_cmap = cm.Blues
+        orig_cmap = mcolors.LinearSegmentedColormap.from_list(
+            "wong_green_map", ['white', wong_colors[3]]
+        )
         colors = orig_cmap(np.linspace(min_val, max_val, n))
         cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 
@@ -743,10 +761,10 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(edge_values)
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
-        colorbar.set_label(cbar_title, fontsize=12)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.015, shrink=0.7)
+        colorbar.set_label(cbar_title, fontsize=16)
         colorbar.set_ticks(colorbar_ticks[0])
-        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=14)
     
         
     elif temporal_metric == 'source trace':
@@ -757,7 +775,14 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         cbar_title = 'Mean source trace [%]'
         colorbar_ticks = (np.arange(50, 101, 10), [r"$<50$"] + [str(int(x)) for x in np.arange(60, 101, 10)])
         clims = (50, 100)
-        cmap = cm.get_cmap('RdYlBu')
+
+        n = 10
+        min_val, max_val = 0, 0.9
+        orig_cmap = mcolors.LinearSegmentedColormap.from_list(
+            "wong_blue_map", [wong_colors[5], "white"]
+        )
+        colors = orig_cmap(np.linspace(min_val, max_val, n))
+        cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 
         # draw network and plot node weights
         uG = nx.from_pandas_edgelist(link_df, source='node_out', target='node_in')
@@ -770,28 +795,30 @@ def plot_temporal_metric(wdn, temporal_metric, df_flow, df_trace, sensor_names, 
         # create a color bar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array(metric[node_weight_name])
-        colorbar = plt.colorbar(sm, orientation='horizontal', pad=-0.025, shrink=0.8)
-        colorbar.set_label(cbar_title, fontsize=12)
+        colorbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=-0.015, shrink=0.7)
+        colorbar.set_label(cbar_title, fontsize=16)
         colorbar.set_ticks(colorbar_ticks[0])
-        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=11)
+        colorbar.set_ticklabels(colorbar_ticks[1], fontsize=14)
 
 
     nx.draw_networkx_nodes(uG, pos, nodelist=net_info['reservoir_names'], node_size=120, node_shape='s', node_color='black', edgecolors='white') # draw reservoir nodes
-    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=50, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
+    nx.draw_networkx_nodes(uG, pos, nodelist=sensor_names, node_size=80, node_shape='o', node_color='black', edgecolors='white') # draw sensor nodes
     if sensor_labels:
-        sensor_labels = {node: str(idx+1) for (idx, node) in enumerate(sensor_names)}
+        sensor_labels = {node: sensor_names_[idx] for (idx, node) in enumerate(sensor_names)}
         # labels_sen_white = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=14, font_color='white', verticalalignment='bottom')
-        labels_sen = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=12, verticalalignment='bottom')
+        labels_sen = nx.draw_networkx_labels(uG, pos, sensor_labels, font_size=16, verticalalignment='bottom')
         for _, label in labels_sen.items():
-            label.set_y(label.get_position()[1] + 70)
+            label.set_y(label.get_position()[1] + 80)
         # for _, label in labels_sen_white.items():
         #     label.set_y(label.get_position()[1] + 70)   
 
-    legend_labels = {'Inlet': 'black', 'Sensor': 'black'}
-    legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor' else 's' if label == 'Inlet' else None, markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10 if label == 'Sensor' else 11 if label == 'Inlet' else None, label=label) for label, color in legend_labels.items()]
-    leg = plt.legend(handles=legend_handles, loc='upper right', frameon=True, borderpad=0.75)
-    leg.get_frame().set_edgecolor('black')
-    leg.get_frame().set_linewidth(0.5)
+    # legend_labels = {'Inlet': 'black', 'Sensor': 'black'}
+    # legend_handles = [plt.Line2D([0], [0], marker='o' if label == 'Sensor' else 's' if label == 'Inlet' else None, markeredgewidth=2, markeredgecolor='white', color='white', markerfacecolor=color, markersize=10 if label == 'Sensor' else 11 if label == 'Inlet' else None, label=label) for label, color in legend_labels.items()]
+    # leg = plt.legend(handles=legend_handles, loc='upper right', frameon=True, borderpad=0.75)
+    # leg.get_frame().set_edgecolor('black')
+    # leg.get_frame().set_linewidth(0.5)
+
+    fig.savefig("fig.pdf", format='pdf', bbox_inches='tight')
 
 
 
